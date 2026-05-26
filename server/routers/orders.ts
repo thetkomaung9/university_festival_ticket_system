@@ -37,21 +37,36 @@ export const ordersRouter = router({
     .mutation(async ({ input, ctx }) => {
       const event = await db.getEventById(input.eventId);
       if (!event || event.status !== "PUBLISHED") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Event not available" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Event not available",
+        });
       }
       const now = Date.now();
       if (now < event.saleStartsAt || now > event.saleEndsAt) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Ticket sale window is closed" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Ticket sale window is closed",
+        });
       }
       const tt = await db.getTicketType(input.ticketTypeId);
       if (!tt || tt.eventId !== event.id) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid ticket type" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid ticket type",
+        });
       }
       if (tt.status !== "ACTIVE") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "This ticket type is unavailable" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "This ticket type is unavailable",
+        });
       }
       if (tt.soldCount + input.quantity > tt.stock) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Not enough tickets remaining" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Not enough tickets remaining",
+        });
       }
       if (input.quantity > tt.maxPerUser) {
         throw new TRPCError({
@@ -77,7 +92,10 @@ export const ordersRouter = router({
           paymentProvider: "mock",
         });
       } catch (err) {
-        if (err instanceof Error && err.message === "Not enough tickets remaining") {
+        if (
+          err instanceof Error &&
+          err.message === "Not enough tickets remaining"
+        ) {
           throw new TRPCError({ code: "BAD_REQUEST", message: err.message });
         }
         throw err;
@@ -93,10 +111,12 @@ export const ordersRouter = router({
     .input(z.object({ merchantUid: z.string() }))
     .query(async ({ input }) => {
       const order = await db.getOrderByMerchantUid(input.merchantUid);
-      if (!order) throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
+      if (!order)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
       const event = await db.getEventById(order.eventId);
       const tt = await db.getTicketType(order.ticketTypeId);
-      const issuedTickets = order.status === "PAID" ? await db.getTicketsByOrder(order.id) : [];
+      const issuedTickets =
+        order.status === "PAID" ? await db.getTicketsByOrder(order.id) : [];
       return { order, event, ticketType: tt, tickets: issuedTickets };
     }),
 
@@ -139,7 +159,11 @@ export const ordersRouter = router({
       // Idempotency: if already PAID, return existing tickets.
       if (order.status === "PAID") {
         const tickets = await db.getTicketsByOrder(order.id);
-        return { ok: true, alreadyPaid: true, tickets: tickets.map((t) => t.ticketCode) };
+        return {
+          ok: true,
+          alreadyPaid: true,
+          tickets: tickets.map(t => t.ticketCode),
+        };
       }
       if (order.status !== "PENDING") {
         await db.logPayment({
@@ -149,7 +173,10 @@ export const ordersRouter = router({
           payload: { input, currentStatus: order.status },
           verified: "false",
         });
-        throw new TRPCError({ code: "BAD_REQUEST", message: `Order is ${order.status}, cannot mark paid` });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Order is ${order.status}, cannot mark paid`,
+        });
       }
       // Server-side amount comparison — never trust the frontend.
       if (input.paidAmount !== order.totalAmount) {
@@ -160,11 +187,15 @@ export const ordersRouter = router({
           payload: { input, expected: order.totalAmount },
           verified: "false",
         });
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Amount mismatch" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Amount mismatch",
+        });
       }
 
       // Mark paid + issue tickets atomically (best-effort given MySQL).
-      const paymentKey = input.paymentKey ?? `mock_${randomBytes(6).toString("hex")}`;
+      const paymentKey =
+        input.paymentKey ?? `mock_${randomBytes(6).toString("hex")}`;
       await db.markOrderPaid(order.id, paymentKey);
 
       const issued: { code: string; token: string }[] = [];
@@ -200,21 +231,26 @@ export const ordersRouter = router({
         content: `${order.buyerName} (${order.buyerEmail}) paid ${order.totalAmount.toLocaleString()} KRW for ${order.quantity} ticket(s).`,
       }).catch(() => {});
 
-      return { ok: true, alreadyPaid: false, tickets: issued.map((t) => t.code) };
+      return { ok: true, alreadyPaid: false, tickets: issued.map(t => t.code) };
     }),
 
   // ── Admin order management
   adminListOrders: adminProcedure.query(async () => {
-    const [allOrders, allEvents] = await Promise.all([db.listOrders(), db.listAllEvents()]);
-    const eventMap = new Map(allEvents.map((e) => [e.id, e]));
-    return allOrders.map((o) => ({
+    const [allOrders, allEvents] = await Promise.all([
+      db.listOrders(),
+      db.listAllEvents(),
+    ]);
+    const eventMap = new Map(allEvents.map(e => [e.id, e]));
+    return allOrders.map(o => ({
       ...o,
       event: eventMap.get(o.eventId) ?? null,
     }));
   }),
 
   adminCancelOrder: adminProcedure
-    .input(z.object({ orderId: z.number(), refund: z.boolean().default(false) }))
+    .input(
+      z.object({ orderId: z.number(), refund: z.boolean().default(false) })
+    )
     .mutation(async ({ input }) => {
       const order = await db.getOrderById(input.orderId);
       if (!order) throw new TRPCError({ code: "NOT_FOUND" });
@@ -242,7 +278,10 @@ export const ordersRouter = router({
     .mutation(async ({ input }) => {
       const order = await db.getOrderById(input.orderId);
       if (!order || order.status !== "PAID") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Order is not in PAID state" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Order is not in PAID state",
+        });
       }
       const tickets = await db.getTicketsByOrder(input.orderId);
       // In production this would re-trigger the email helper; here we just notify the owner.

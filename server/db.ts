@@ -81,13 +81,20 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     updateSet.lastSignedIn = new Date();
   }
 
-  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
+  await db
+    .insert(users)
+    .values(values)
+    .onDuplicateKeyUpdate({ set: updateSet });
 }
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, openId))
+    .limit(1);
   return result[0];
 }
 
@@ -97,7 +104,10 @@ export async function listUsers() {
   return db.select().from(users).orderBy(desc(users.createdAt));
 }
 
-export async function setUserRole(userId: number, role: "user" | "staff" | "admin") {
+export async function setUserRole(
+  userId: number,
+  role: "user" | "staff" | "admin"
+) {
   const db = await getDb();
   if (!db) return;
   await db.update(users).set({ role }).where(eq(users.id, userId));
@@ -126,7 +136,11 @@ export async function listAllCategories() {
 export async function getCategoryBySlug(slug: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const r = await db.select().from(eventCategories).where(eq(eventCategories.slug, slug)).limit(1);
+  const r = await db
+    .select()
+    .from(eventCategories)
+    .where(eq(eventCategories.slug, slug))
+    .limit(1);
   return r[0];
 }
 
@@ -137,7 +151,10 @@ export async function createCategory(input: InsertEventCategory) {
   return Number((result as unknown as { insertId: number }).insertId);
 }
 
-export async function updateCategory(id: number, patch: Partial<InsertEventCategory>) {
+export async function updateCategory(
+  id: number,
+  patch: Partial<InsertEventCategory>
+) {
   const db = await getDb();
   if (!db) return;
   await db.update(eventCategories).set(patch).where(eq(eventCategories.id, id));
@@ -165,7 +182,11 @@ export async function listAllEvents() {
 export async function getEventBySlug(slug: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const r = await db.select().from(events).where(eq(events.slug, slug)).limit(1);
+  const r = await db
+    .select()
+    .from(events)
+    .where(eq(events.slug, slug))
+    .limit(1);
   return r[0];
 }
 
@@ -196,13 +217,21 @@ export async function updateEvent(id: number, patch: Partial<InsertEvent>) {
 export async function listTicketTypesByEvent(eventId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(ticketTypes).where(eq(ticketTypes.eventId, eventId)).orderBy(ticketTypes.price);
+  return db
+    .select()
+    .from(ticketTypes)
+    .where(eq(ticketTypes.eventId, eventId))
+    .orderBy(ticketTypes.price);
 }
 
 export async function getTicketType(id: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const r = await db.select().from(ticketTypes).where(eq(ticketTypes.id, id)).limit(1);
+  const r = await db
+    .select()
+    .from(ticketTypes)
+    .where(eq(ticketTypes.id, id))
+    .limit(1);
   return r[0];
 }
 
@@ -213,7 +242,10 @@ export async function createTicketType(input: InsertTicketType) {
   return Number((result as unknown as { insertId: number }).insertId);
 }
 
-export async function updateTicketType(id: number, patch: Partial<InsertTicketType>) {
+export async function updateTicketType(
+  id: number,
+  patch: Partial<InsertTicketType>
+) {
   const db = await getDb();
   if (!db) return;
   await db.update(ticketTypes).set(patch).where(eq(ticketTypes.id, id));
@@ -255,7 +287,7 @@ export async function createPendingOrderWithReservation(input: InsertOrder) {
     throw new Error("ticketTypeId and quantity are required");
   }
 
-  return db.transaction(async (tx) => {
+  return db.transaction(async tx => {
     const reserveResult = await tx
       .update(ticketTypes)
       .set({ soldCount: sql`${ticketTypes.soldCount} + ${input.quantity}` })
@@ -266,7 +298,9 @@ export async function createPendingOrderWithReservation(input: InsertOrder) {
           sql`${ticketTypes.soldCount} + ${input.quantity} <= ${ticketTypes.stock}`
         )
       );
-    const affectedRows = Number((reserveResult as unknown as { affectedRows?: number }).affectedRows ?? 0);
+    const affectedRows = Number(
+      (reserveResult as unknown as { affectedRows?: number }).affectedRows ?? 0
+    );
     if (affectedRows === 0) {
       throw new Error("Not enough tickets remaining");
     }
@@ -286,7 +320,11 @@ export async function getOrderById(id: number) {
 export async function getOrderByMerchantUid(merchantUid: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const r = await db.select().from(orders).where(eq(orders.merchantUid, merchantUid)).limit(1);
+  const r = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.merchantUid, merchantUid))
+    .limit(1);
   return r[0];
 }
 
@@ -299,14 +337,20 @@ export async function markOrderPaid(orderId: number, paymentKey: string) {
     .where(eq(orders.id, orderId));
 }
 
-export async function setOrderStatus(orderId: number, status: "CANCELLED" | "REFUNDED" | "EXPIRED") {
+export async function setOrderStatus(
+  orderId: number,
+  status: "CANCELLED" | "REFUNDED" | "EXPIRED"
+) {
   const db = await getDb();
   if (!db) return;
   await db
     .update(orders)
     .set({
       status,
-      cancelledAt: status === "CANCELLED" || status === "REFUNDED" ? new Date() : undefined,
+      cancelledAt:
+        status === "CANCELLED" || status === "REFUNDED"
+          ? new Date()
+          : undefined,
     })
     .where(eq(orders.id, orderId));
 }
@@ -320,7 +364,11 @@ export async function listOrders() {
 export async function listOrdersByEvent(eventId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(orders).where(eq(orders.eventId, eventId)).orderBy(desc(orders.createdAt));
+  return db
+    .select()
+    .from(orders)
+    .where(eq(orders.eventId, eventId))
+    .orderBy(desc(orders.createdAt));
 }
 
 // ─────────────────────────────────────────────
@@ -337,14 +385,22 @@ export async function createTicket(input: InsertTicket) {
 export async function getTicketByCode(code: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const r = await db.select().from(tickets).where(eq(tickets.ticketCode, code)).limit(1);
+  const r = await db
+    .select()
+    .from(tickets)
+    .where(eq(tickets.ticketCode, code))
+    .limit(1);
   return r[0];
 }
 
 export async function getTicketByHash(hash: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const r = await db.select().from(tickets).where(eq(tickets.qrTokenHash, hash)).limit(1);
+  const r = await db
+    .select()
+    .from(tickets)
+    .where(eq(tickets.qrTokenHash, hash))
+    .limit(1);
   return r[0];
 }
 
@@ -357,7 +413,11 @@ export async function getTicketsByOrder(orderId: number) {
 export async function getTicketsByEvent(eventId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(tickets).where(eq(tickets.eventId, eventId)).orderBy(desc(tickets.issuedAt));
+  return db
+    .select()
+    .from(tickets)
+    .where(eq(tickets.eventId, eventId))
+    .orderBy(desc(tickets.issuedAt));
 }
 
 export async function markTicketUsed(ticketId: number, staffUserId: number) {
@@ -369,7 +429,10 @@ export async function markTicketUsed(ticketId: number, staffUserId: number) {
     .where(and(eq(tickets.id, ticketId), eq(tickets.status, "VALID")));
 }
 
-export async function setTicketStatus(ticketId: number, status: "CANCELLED" | "EXPIRED" | "VALID") {
+export async function setTicketStatus(
+  ticketId: number,
+  status: "CANCELLED" | "EXPIRED" | "VALID"
+) {
   const db = await getDb();
   if (!db) return;
   await db.update(tickets).set({ status }).where(eq(tickets.id, ticketId));
