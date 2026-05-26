@@ -11,6 +11,7 @@ import AdminEvents from "./pages/admin/AdminEvents";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminReports from "./pages/admin/AdminReports";
+import { SignInPage, SignUpPage } from "./pages/Auth";
 import CategoriesPage from "./pages/Categories";
 import CheckoutPage from "./pages/Checkout";
 import EventDetailPage from "./pages/EventDetail";
@@ -24,6 +25,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/about" component={AboutPage} />
+      <Route path="/signin" component={SignInPage} />
+      <Route path="/signup" component={SignUpPage} />
       <Route path="/categories" component={CategoriesPage} />
       <Route path="/categories/:slug" component={EventsPage} />
       <Route path="/events" component={EventsPage} />

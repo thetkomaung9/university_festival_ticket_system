@@ -1,6 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { getLoginUrl } from "@/const";
 import { cn } from "@/lib/utils";
 import { GraduationCap, LogOut, Menu, ScanLine, ShieldCheck, Ticket, X } from "lucide-react";
 import { useState } from "react";
@@ -128,10 +127,10 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
                 size="sm"
                 className="bg-[var(--sunmoon-navy)] hover:bg-[var(--sunmoon-navy-deep)]"
               >
-                <a href={getLoginUrl()}>
+                <Link href="/signin">
                   <GraduationCap className="h-4 w-4" />
                   Sign in
-                </a>
+                </Link>
               </Button>
             )}
           </div>
@@ -191,12 +190,12 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
                   <LogOut className="h-4 w-4" /> Sign out
                 </button>
               ) : (
-                <a
-                  href={getLoginUrl()}
+                <Link
+                  href="/signin"
                   className="px-3 py-2.5 rounded-md text-sm font-medium bg-[var(--sunmoon-navy)] text-white flex items-center gap-2"
                 >
                   <GraduationCap className="h-4 w-4" /> Sign in
-                </a>
+                </Link>
               )}
             </div>
           </div>
