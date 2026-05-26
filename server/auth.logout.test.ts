@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import { COOKIE_NAME } from "../shared/const";
 import type { TrpcContext } from "./_core/context";
+import { hashPassword, verifyPassword } from "./passwordAuth";
 
 type CookieCall = {
   name: string;
@@ -10,7 +11,10 @@ type CookieCall = {
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
-function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] } {
+function createAuthContext(): {
+  ctx: TrpcContext;
+  clearedCookies: CookieCall[];
+} {
   const clearedCookies: CookieCall[] = [];
 
   const user: AuthenticatedUser = {
@@ -58,5 +62,17 @@ describe("auth.logout", () => {
       httpOnly: true,
       path: "/",
     });
+  });
+});
+
+describe("password auth helpers", () => {
+  it("hashes and verifies passwords without storing plaintext", () => {
+    const hash = hashPassword("correct horse battery staple");
+
+    expect(hash).toMatch(/^scrypt:/);
+    expect(hash).not.toContain("correct horse battery staple");
+    expect(verifyPassword("correct horse battery staple", hash)).toBe(true);
+    expect(verifyPassword("wrong password", hash)).toBe(false);
+    expect(verifyPassword("anything", null)).toBe(false);
   });
 });
