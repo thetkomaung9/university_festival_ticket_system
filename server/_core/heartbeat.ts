@@ -55,7 +55,16 @@ const buildEndpoint = (rpc: string): string => {
       message: "Heartbeat service API key is not configured (BUILT_IN_FORGE_API_KEY).",
     });
   }
-  const baseUrl = ENV.forgeApiUrl;
+  let baseUrl: string;
+  try {
+    baseUrl = new URL(ENV.forgeApiUrl).toString();
+  } catch {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message:
+        "Heartbeat service URL is invalid (BUILT_IN_FORGE_API_URL must include https://).",
+    });
+  }
   const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
   return new URL(`${SERVICE}/${rpc}`, normalizedBase).toString();
 };
