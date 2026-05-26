@@ -29,7 +29,10 @@ export async function callDataApi(
     throw new Error("BUILT_IN_FORGE_API_URL is not configured or invalid");
   }
   baseUrl = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
-  const fullUrl = new URL("webdevtoken.v1.WebDevService/CallApi", baseUrl).toString();
+  const fullUrl = new URL(
+    "webdevtoken.v1.WebDevService/CallApi",
+    baseUrl
+  ).toString();
 
   const response = await fetch(fullUrl, {
     method: "POST",

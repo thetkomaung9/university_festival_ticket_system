@@ -25,10 +25,7 @@ export function registerStorageProxy(app: Express) {
     }
 
     try {
-      const forgeUrl = new URL(
-        "v1/storage/presign/get",
-        `${forgeBaseUrl}/`,
-      );
+      const forgeUrl = new URL("v1/storage/presign/get", `${forgeBaseUrl}/`);
       forgeUrl.searchParams.set("path", key);
 
       const forgeResp = await fetch(forgeUrl, {
@@ -37,7 +34,9 @@ export function registerStorageProxy(app: Express) {
 
       if (!forgeResp.ok) {
         const body = await forgeResp.text().catch(() => "");
-        console.error(`[StorageProxy] forge error: ${forgeResp.status} ${body}`);
+        console.error(
+          `[StorageProxy] forge error: ${forgeResp.status} ${body}`
+        );
         res.status(502).send("Storage backend error");
         return;
       }
