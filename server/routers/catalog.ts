@@ -10,7 +10,9 @@ const ticketTypeStatus = z.enum(["ACTIVE", "SOLD_OUT", "HIDDEN"]);
 
 async function attachCategories<T extends { categoryId: number }>(events: T[]) {
   const categories = await db.listAllCategories();
-  const categoryMap = new Map(categories.map(category => [category.id, category]));
+  const categoryMap = new Map(
+    categories.map(category => [category.id, category])
+  );
   return events.map(event => ({
     ...event,
     category: categoryMap.get(event.categoryId) ?? null,

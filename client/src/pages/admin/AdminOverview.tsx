@@ -20,7 +20,10 @@ export default function AdminOverview() {
 
   const paidOrders = (orders ?? []).filter(order => order.status === "PAID");
   const revenue = paidOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-  const ticketsSold = paidOrders.reduce((sum, order) => sum + order.quantity, 0);
+  const ticketsSold = paidOrders.reduce(
+    (sum, order) => sum + order.quantity,
+    0
+  );
   const recentOrders = (orders ?? []).slice(0, 6);
 
   return (
@@ -41,7 +44,12 @@ export default function AdminOverview() {
           icon={Tag}
           href="/admin/categories"
         />
-        <Metric label="Tickets sold" value={ticketsSold} icon={ShieldCheck} href="/admin/reports" />
+        <Metric
+          label="Tickets sold"
+          value={ticketsSold}
+          icon={ShieldCheck}
+          href="/admin/reports"
+        />
         <Metric
           label="Revenue"
           value={`₩ ${revenue.toLocaleString()}`}
@@ -57,7 +65,9 @@ export default function AdminOverview() {
               <h2 className="font-serif text-lg font-bold text-[var(--sunmoon-navy)]">
                 Recent orders
               </h2>
-              <p className="text-xs text-foreground/60">Latest buyer activity</p>
+              <p className="text-xs text-foreground/60">
+                Latest buyer activity
+              </p>
             </div>
             <Button asChild variant="outline" size="sm" className="bg-white">
               <Link href="/admin/orders">View all</Link>
@@ -78,9 +88,13 @@ export default function AdminOverview() {
                   <tr key={order.id}>
                     <td className="px-4 py-3">
                       <div className="font-medium">{order.buyerName}</div>
-                      <div className="text-xs text-foreground/60">{order.buyerEmail}</div>
+                      <div className="text-xs text-foreground/60">
+                        {order.buyerEmail}
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-xs">{order.event?.title ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs">
+                      {order.event?.title ?? "—"}
+                    </td>
                     <td className="px-4 py-3 text-right font-semibold">
                       ₩ {order.totalAmount.toLocaleString()}
                     </td>
@@ -98,7 +112,10 @@ export default function AdminOverview() {
                 ))}
                 {recentOrders.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="py-12 text-center text-foreground/50">
+                    <td
+                      colSpan={4}
+                      className="py-12 text-center text-foreground/50"
+                    >
                       No orders yet.
                     </td>
                   </tr>
@@ -113,17 +130,28 @@ export default function AdminOverview() {
             Quick actions
           </h2>
           <div className="mt-4 space-y-2">
-            <Button asChild className="w-full justify-start bg-[var(--sunmoon-navy)]">
+            <Button
+              asChild
+              className="w-full justify-start bg-[var(--sunmoon-navy)]"
+            >
               <Link href="/admin/events">
                 <CalendarDays className="h-4 w-4" /> Manage events
               </Link>
             </Button>
-            <Button asChild variant="outline" className="w-full justify-start bg-white">
+            <Button
+              asChild
+              variant="outline"
+              className="w-full justify-start bg-white"
+            >
               <Link href="/admin/categories">
                 <Tag className="h-4 w-4" /> Manage categories
               </Link>
             </Button>
-            <Button asChild variant="outline" className="w-full justify-start bg-white">
+            <Button
+              asChild
+              variant="outline"
+              className="w-full justify-start bg-white"
+            >
               <Link href="/scanner">
                 <ShieldCheck className="h-4 w-4" /> Open scanner
               </Link>
@@ -153,9 +181,13 @@ function Metric({
           <div className="h-10 w-10 rounded-md bg-[var(--sunmoon-navy)] text-white flex items-center justify-center">
             <Icon className="h-5 w-5" />
           </div>
-          <span className="text-xs uppercase tracking-wider text-foreground/50">Open</span>
+          <span className="text-xs uppercase tracking-wider text-foreground/50">
+            Open
+          </span>
         </div>
-        <div className="mt-5 text-xs uppercase tracking-wider text-foreground/60">{label}</div>
+        <div className="mt-5 text-xs uppercase tracking-wider text-foreground/60">
+          {label}
+        </div>
         <div className="mt-1 font-serif text-3xl font-bold text-[var(--sunmoon-navy)]">
           {value}
         </div>
