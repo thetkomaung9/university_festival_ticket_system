@@ -1,10 +1,12 @@
 import SiteLayout from "@/components/SiteLayout";
+import { demoCategories } from "@/lib/demoCatalog";
 import { trpc } from "@/lib/trpc";
 import { ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 
 export default function CategoriesPage() {
   const { data: categories, isLoading } = trpc.catalog.listCategories.useQuery();
+  const displayCategories = categories?.length ? categories : demoCategories;
 
   return (
     <SiteLayout>
@@ -25,7 +27,7 @@ export default function CategoriesPage() {
       </div>
 
       <div className="container py-12">
-        {isLoading ? (
+        {isLoading && !categories ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="aspect-[16/10] rounded-lg bg-secondary animate-pulse" />
@@ -33,7 +35,7 @@ export default function CategoriesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(categories ?? []).map((cat) => (
+            {displayCategories.map((cat) => (
               <Link key={cat.id} href={`/categories/${cat.slug}`}>
                 <article className="group relative aspect-[16/9] overflow-hidden rounded-lg border border-border">
                   {cat.posterUrl ? (

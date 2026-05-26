@@ -1,5 +1,6 @@
 import { EventCard } from "@/components/EventCard";
 import SiteLayout from "@/components/SiteLayout";
+import { demoCategories, demoEvents } from "@/lib/demoCatalog";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import { Calendar } from "lucide-react";
@@ -13,7 +14,11 @@ export default function EventsPage() {
   const { data: events, isLoading } = trpc.catalog.listEvents.useQuery(queryInput);
   const { data: categories } = trpc.catalog.listCategories.useQuery();
 
-  const activeCategory = slug ? categories?.find((c) => c.slug === slug) : null;
+  const displayCategories = categories?.length ? categories : demoCategories;
+  const displayEvents = events?.length
+    ? events
+    : demoEvents.filter((event) => !slug || event.category.slug === slug);
+  const activeCategory = slug ? displayCategories.find((c) => c.slug === slug) : null;
 
   return (
     <SiteLayout>
@@ -61,7 +66,7 @@ export default function EventsPage() {
               All
             </span>
           </Link>
-          {(categories ?? []).map((c) => (
+          {displayCategories.map((c) => (
             <Link key={c.id} href={`/categories/${c.slug}`}>
               <span
                 className={cn(
@@ -80,20 +85,20 @@ export default function EventsPage() {
       </div>
 
       <div className="container py-12">
-        {isLoading ? (
+        {isLoading && !events ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="aspect-[3/4] rounded-lg bg-secondary animate-pulse" />
             ))}
           </div>
-        ) : (events ?? []).length === 0 ? (
+        ) : displayEvents.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-white p-16 text-center">
             <Calendar className="h-10 w-10 mx-auto text-foreground/30" />
             <p className="mt-3 text-foreground/60">No events in this category yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {(events ?? []).map((evt) => (
+            {displayEvents.map((evt) => (
               <EventCard
                 key={evt.id}
                 slug={evt.slug}

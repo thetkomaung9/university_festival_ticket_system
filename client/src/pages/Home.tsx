@@ -1,6 +1,7 @@
 import { EventCard } from "@/components/EventCard";
 import SiteLayout from "@/components/SiteLayout";
 import { Button } from "@/components/ui/button";
+import { demoCategories, demoEvents } from "@/lib/demoCatalog";
 import { trpc } from "@/lib/trpc";
 import { ArrowRight, Calendar, ScanLine, ShieldCheck, Sparkles, Ticket } from "lucide-react";
 import { Link } from "wouter";
@@ -11,7 +12,9 @@ export default function Home() {
   const { data: events } = trpc.catalog.listEvents.useQuery();
   const { data: categories } = trpc.catalog.listCategories.useQuery();
 
-  const upcoming = (events ?? []).slice(0, 6);
+  const displayEvents = events?.length ? events : demoEvents;
+  const displayCategories = categories?.length ? categories : demoCategories;
+  const upcoming = displayEvents.slice(0, 6);
 
   return (
     <SiteLayout>
@@ -106,7 +109,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {(categories ?? []).map((cat, idx) => (
+            {displayCategories.map((cat, idx) => (
               <Link key={cat.id} href={`/categories/${cat.slug}`}>
                 <article className="group relative h-72 overflow-hidden rounded-lg border border-border bg-card">
                   {cat.posterUrl ? (
