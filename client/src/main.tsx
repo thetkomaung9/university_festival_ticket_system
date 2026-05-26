@@ -8,6 +8,8 @@ import App from "./App";
 import "./index.css";
 
 const queryClient = new QueryClient();
+const apiBaseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, "");
+const trpcUrl = apiBaseUrl ? `${apiBaseUrl}/api/trpc` : "/api/trpc";
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
@@ -39,13 +41,20 @@ queryClient.getMutationCache().subscribe(event => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/api/trpc",
+      url: trpcUrl,
       transformer: superjson,
-      fetch(input, init) {
-        return globalThis.fetch(input, {
+      async fetch(input, init) {
+        const response = await globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",
         });
+        const contentType = response.headers.get("content-type") ?? "";
+        if (!contentType.includes("application/json")) {
+          throw new Error(
+            "Backend API is not returning JSON. Set VITE_API_URL to the deployed Express backend URL."
+          );
+        }
+        return response;
       },
     }),
   ],
